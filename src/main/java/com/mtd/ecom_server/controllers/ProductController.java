@@ -15,16 +15,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mtd.ecom_server.exception.ResourceNotFoundException;
 import com.mtd.ecom_server.models.Product;
 import com.mtd.ecom_server.repos.ProductRepo;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/products")
 public class ProductController {
 	private static final Logger Log=LoggerFactory.getLogger(ProductController.class);
+	
 	@Autowired ProductRepo productRepo;
 	
+	@Tag(name="Get all products")
 	@GetMapping("/all")
 	public List<Product> getAllProducts() {
 		Log.info("fetching products");
@@ -39,9 +44,8 @@ public class ProductController {
 	public String deleteProduct(@PathVariable String id) {
 		Optional <Product> findproduct  = productRepo.findById(id);
 		if(findproduct.isEmpty()) {
-			productRepo.deleteById(id);
 			Log.error("Failed to delete product"+id);
-			return "Failed to delete product";
+			throw new ResourceNotFoundException("Product not found");
 		}
 		productRepo.deleteById(id);
 		Log.info("Product delted" +id);
@@ -57,6 +61,7 @@ public class ProductController {
 		findproduct.setTags(newproduct.getTags());
 		findproduct.setPrice(newproduct.getPrice());
 		findproduct.setStock(newproduct.getStock());
+		Log.info("Updating the product"+findproduct);
 		return productRepo.save(findproduct) ;
 	}
 	
