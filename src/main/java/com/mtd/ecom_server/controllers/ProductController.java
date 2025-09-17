@@ -1,7 +1,9 @@
 package com.mtd.ecom_server.controllers;
 
-import java.util.List;
+import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,26 +22,31 @@ import com.mtd.ecom_server.repos.ProductRepo;
 @RestController
 @RequestMapping("/products")
 public class ProductController {
+	private static final Logger Log=LoggerFactory.getLogger(ProductController.class);
 	@Autowired ProductRepo productRepo;
 	
 	@GetMapping("/all")
 	public List<Product> getAllProducts() {
+		Log.info("fetching products");
 		return productRepo.findAll();
 	}
 	@PostMapping("/add")
 	public Product addProduct(@RequestBody Product newproduct) {
+		Log.info("Adding product"+" "+newproduct);
 		return productRepo.save(newproduct);
 	}
 	@DeleteMapping("/product/delete/{id}")
 	public String deleteProduct(@PathVariable String id) {
-		Product findproduct  = productRepo.findById(id).get();
-		if(findproduct !=null) {
+		Optional <Product> findproduct  = productRepo.findById(id);
+		if(findproduct.isEmpty()) {
 			productRepo.deleteById(id);
-			return "Product Deleted "+ findproduct.getName();
-		}
-		else {
+			Log.error("Failed to delete product"+id);
 			return "Failed to delete product";
 		}
+		productRepo.deleteById(id);
+		Log.info("Product delted" +id);
+		return "Product deleted";
+		
 	}
 	@PutMapping ("/product/edit/{id}")
 	public Product editPorduct(@PathVariable String id, @RequestBody Product newproduct) {
